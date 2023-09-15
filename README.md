@@ -6,9 +6,4 @@ Demo dapp for protico-sdk
 ```
 npm run dev
 ```
-it will run on `localhost:4100`
-you can test it by
-```
-curl -X GET http://localhost:4100/health
-```
-> OK
+it will run on `localhost:5173`
