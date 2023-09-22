@@ -3,7 +3,7 @@ import { TWhiteboardMessage } from "protico-sdk";
 import React, { useEffect, useRef, useState } from "react";
 
 import { useLobbyWebsocket } from "./hooks/useLobbyWebsocket";
-import { getProticoAPI } from "./utils/api";
+import { getProticoClient } from "./utils/api";
 import { useProticoAuth } from "./hooks/useProticoAuth";
 import {
   convertTo12HourFormat,
@@ -42,7 +42,7 @@ const MessageItem = ({ message, displayAvatar }: IProps) => {
     if (!room) return;
     const referenceMessageId = message.referenced_message.id;
 
-    const res = await getProticoAPI().whiteboard.getMessages({
+    const res = await getProticoClient().whiteboard.getMessages({
       referenceMessageId,
       room,
     });

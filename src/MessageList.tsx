@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from "react";
 import InfiniteScroll from "./components/InfiniteScroll";
 import { useLobbyWebsocket } from "./hooks/useLobbyWebsocket";
 import MessageItem from "./MessageItem";
-import api, { getProticoAPI } from "./utils/api";
+import api, { getProticoClient } from "./utils/api";
 const MessageList = ({ room }: { room: string }) => {
   const {
     displayMessageList,
@@ -34,7 +34,7 @@ const MessageList = ({ room }: { room: string }) => {
   const fetchDataInit = async () => {
     let messages: TWhiteboardMessage[] = [];
     try {
-      const response = await getProticoAPI().whiteboard.getMessages({
+      const response = await getProticoClient().whiteboard.getMessages({
         page_size: 200,
         room,
       });

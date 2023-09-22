@@ -4,11 +4,10 @@ import {
   PROTICO_AUTH_EVENTS,
   SUPPORTED_ADAPTERS,
   SUPPORTED_ADAPTER_TYPE,
-  UserIdToken,
 } from "protico-sdk";
 import { AbstractProvider } from "web3-core";
 import React, { useCallback } from "react";
-import { getProticoAPI } from "../../utils/api";
+import { getProticoClient } from "../../utils/api";
 
 interface IProticoAuthContext {
   login: (adapter: SUPPORTED_ADAPTER_TYPE) => Promise<void>;
@@ -43,7 +42,8 @@ export const ProticoAuthProvider = ({
   const [provider, setProvider] = React.useState<AbstractProvider | null>(null);
   const [chainId, setChainId] = React.useState<string | null>(null);
   const [address, setAddress] = React.useState<string | null>(null);
-  const [idToken, setIdToken] = React.useState<UserIdToken | null>(null);
+  const [isProticoAuthenticated, setIsProticoAuthenticated] =
+    React.useState<boolean>(false);
   const [connectedAdapterName, setConnectedAdapterName] =
     React.useState<SUPPORTED_ADAPTER_TYPE | null>(null);
 
@@ -66,7 +66,7 @@ export const ProticoAuthProvider = ({
       proticoAuth.current = new ProticoAuthCore({
         chainId: "0x1",
         enableLogging: true,
-        web3IdTokenServer: "http://localhost:8000",
+        web3AccessTokenServer: "http://localhost:8000",
         adapterConfigs: {
           [SUPPORTED_ADAPTERS.METAMASK]: { enable: true },
           [SUPPORTED_ADAPTERS.WALLET_CONNECT_V2]: {
@@ -107,8 +107,11 @@ export const ProticoAuthProvider = ({
   const proticoAuthenticate = async () => {
     if (!proticoAuth.current) return;
     try {
-      const userToken = await proticoAuth.current.getWeb3AuthToken();
-      setIdToken(userToken);
+      const userToken = await getProticoClient().getWeb3AccessToken(
+        proticoAuth.current
+      );
+      getProticoClient().setAuthToken(userToken.web3AccessToken);
+      setIsProticoAuthenticated(true);
     } catch (err) {
       console.log(err);
     }
@@ -116,40 +119,37 @@ export const ProticoAuthProvider = ({
 
   const proticoAuthenticateAutoStorage = React.useCallback(async () => {
     if (!provider || !address || !proticoAuth.current) {
-      setIdToken(null);
+      setIsProticoAuthenticated(false);
+      getProticoClient().clearAuthToken();
       return;
     }
     const userTokenInStorage =
-      await proticoAuth.current.web3IdTokenAutoStorage();
-    setIdToken(userTokenInStorage);
+      await getProticoClient().web3AccessTokenAutoStorage(proticoAuth.current);
+    if (!userTokenInStorage) {
+      setIsProticoAuthenticated(false);
+      getProticoClient().clearAuthToken();
+      return;
+    }
+    getProticoClient().setAuthToken(userTokenInStorage.web3AccessToken);
+    setIsProticoAuthenticated(true);
   }, [provider, address, proticoAuth.current]);
 
   React.useEffect(() => {
     proticoAuthenticateAutoStorage();
   }, [proticoAuthenticateAutoStorage]);
-
-  React.useEffect(() => {
-    if (!idToken?.idToken) {
-      getProticoAPI().clearAuthToken();
-      return;
-    }
-    getProticoAPI().setAuthToken(idToken.idToken);
-  }, [idToken?.idToken]);
-
   return (
     <ProticoAuthContext.Provider
-    value={{
-      login,
-      logout,
-      logined: !!connectedAdapterName,
-      address,
-      chainId,
-      provider,
-      connectedAdapterName,
-      proticoAuthenticate,
-      isProticoAuthenticated:
-        !!idToken && address === idToken.address.toLowerCase(),
-    }}
+      value={{
+        login,
+        logout,
+        logined: !!connectedAdapterName,
+        address,
+        chainId,
+        provider,
+        connectedAdapterName,
+        proticoAuthenticate,
+        isProticoAuthenticated,
+      }}
     >
       {children}
     </ProticoAuthContext.Provider>

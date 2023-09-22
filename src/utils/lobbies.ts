@@ -2,7 +2,7 @@ import localforage from "localforage";
 import { matchSorter } from "match-sorter";
 import { LobbyItem } from "protico-sdk";
 import sortBy from "sort-by";
-import { getProticoAPI } from "./api";
+import { getProticoClient } from "./api";
 
 export interface DomainData {
   domain: string;
@@ -12,13 +12,13 @@ export interface DomainData {
 export async function getLobbies(domain: string): Promise<LobbyItem[]> {
   let lobbies: LobbyItem[] =
     (await localforage.getItem("lobbies")) ||
-    (await getProticoAPI().whiteboard.get(domain));
+    (await getProticoClient().whiteboard.get(domain));
   return lobbies.sort(sortBy("url"));
 }
 
 export async function getLobby(id?: string): Promise<LobbyItem | null> {
   if (!id) return null;
-  const lobby = (await getProticoAPI().whiteboard.getOne(id)) || null;
+  const lobby = (await getProticoClient().whiteboard.getOne(id)) || null;
   return lobby;
 }
 

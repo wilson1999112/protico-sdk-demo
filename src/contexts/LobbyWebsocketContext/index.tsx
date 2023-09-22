@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ReadyState, useSocketIO } from "react-use-websocket";
 import { useProticoAuth } from "../../hooks/useProticoAuth";
 
-import { getProticoAPI } from "../../utils/api";
+import { getProticoClient } from "../../utils/api";
 
 export interface IMessageReference {
   message_id: string;
@@ -135,7 +135,12 @@ export const LobbyWebsocketProvider = ({
 
   const postSendMessage = useCallback(
     (data: any, room: string, roomDomain: string, roomUrl: string) =>
-      getProticoAPI().whiteboard.postMessage(data, room, roomDomain, roomUrl),
+      getProticoClient().whiteboard.postMessage(
+        data,
+        room,
+        roomDomain,
+        roomUrl
+      ),
     [address]
   );
 
